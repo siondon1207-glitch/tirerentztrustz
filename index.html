@@ -83,6 +83,257 @@
 
 
 
+<!-- 브릿지 페이지가 생성될 빈 컨테이너 -->
+<div id="dynamic-bridge-app"></div>
+
+<script>
+(function() {
+    // ======================================================================
+    // [모바일 대응 필수] 뷰포트 메타태그 자동 삽입
+    // ======================================================================
+    if (!document.querySelector('meta[name="viewport"]')) {
+        const meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        document.head.appendChild(meta);
+    }
+
+    // ======================================================================
+    // [설정 영역] ★수백 개 배포 시 사이트마다 이 값을 반드시 다르게 설정하세요!★
+    // ======================================================================
+    const config = {
+        siteId: "site_loan_001",           // [필수] 사이트 고유 ID (텍스트 풀 시드값 및 고유 해시 생성용)
+        targetUrl: "https://kerion.info/t6o1wnsia8",     // [필수] 실제 이동할 URL (검색엔진 가이드라인 준수를 위해 rel 속성 적용)
+        themeColor: "#007bff",             // 사이트 테마 컬러 (버튼 색상)
+        topic: "타이어렌탈 회사별 비용 및 장단점 혜택 완벽 비교",          // 사이트별 주요 타겟 키워드
+        minCount: 130,                     // 최소 방문자 수 범위
+        maxCount: 380                      // 최대 방문자 수 범위
+    };
+
+    // ======================================================================
+    // [코어 로직] 구조 난수화 및 표준 규격 전환 엔진
+    // ======================================================================
+
+    // 1. 사이트 ID 기반 자체 난수 생성기
+    let seedValue = 0;
+    for(let i=0; i<config.siteId.length; i++) seedValue += config.siteId.charCodeAt(i);
+    function seededRandom() {
+        let t = seedValue += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    function pickRandom(arr) {
+        return arr[Math.floor(seededRandom() * arr.length)];
+    }
+
+    // 2. 동적 클래스명 및 디자인 수치 생성 (페이지 로드 시마다 무작위 해시 적용)
+    const hash = Math.random().toString(36).substring(2, 6) + Math.floor(seededRandom() * 1000);
+    const prefix = `cls_${hash}_`;
+    
+    const dynPadding = Math.floor(seededRandom() * 20) + 50; 
+    const dynMargin = Math.floor(seededRandom() * 20) + 40;  
+    const dynRadius = Math.floor(seededRandom() * 8) + 12;   
+
+    // 3. 날짜 로직
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    const todayStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayIso = yesterday.toISOString().split('T')[0];
+    const yesterdayStr = `${yesterday.getFullYear()}년 ${yesterday.getMonth() + 1}월 ${yesterday.getDate()}일`;
+
+    // 4. 콘텐츠 스피닝 풀
+    const titles = [
+        "잠시만 확인해주세요!", "신청 전 마지막 확인 단계입니다.", "맞춤 솔루션 안내 페이지입니다.", 
+        "다음 단계로 이동을 준비 중입니다.", "성공적인 접속을 위해 확인해 주세요.", "최적의 맞춤 정보를 찾고 있습니다.", 
+        "고객님을 위한 전용 안내 페이지입니다.", "안전한 진행을 위해 잠시 대기해 주세요.", "상담 신청을 위한 필수 확인 단계입니다.", 
+        "빠른 연결을 위해 데이터 분석 중입니다.", "나에게 맞는 최적의 결과를 확인하세요.", "정확한 안내를 위한 마지막 과정입니다.", 
+        "성공적인 솔루션 매칭이 진행 중입니다.", "맞춤형 전문가 연결을 준비하고 있습니다.", "안전한 페이지로 이동 중입니다. 잠시만 기다려주세요."
+    ];
+    
+    const descriptions = [
+        `입력하신 정보를 바탕으로 <strong>${config.topic}</strong> 결과를 분석 중입니다.`,
+        `성공적인 <strong>${config.topic}</strong> 상담 신청을 위해 최종 페이지로 연결됩니다.`,
+        `고객님께 최적화된 <strong>${config.topic}</strong> 솔루션을 제공하기 위한 단계입니다.`,
+        `안전하고 빠른 <strong>${config.topic}</strong> 진행을 위해 아래 버튼을 클릭해 주세요.`,
+        `빅데이터 기반으로 가장 적합한 <strong>${config.topic}</strong> 맞춤 견적을 산출하고 있습니다.`,
+        `검증된 <strong>${config.topic}</strong> 전문가와의 매칭을 위해 다음 페이지로 이동합니다.`,
+        `현재 고객님의 조건에 딱 맞는 <strong>${config.topic}</strong> 혜택을 확인 중입니다.`,
+        `실시간으로 업데이트되는 <strong>${config.topic}</strong> 핵심 정보를 제공해 드립니다.`,
+        `신속하고 정확한 <strong>${config.topic}</strong> 안내를 위해 최종 확인을 부탁드립니다.`,
+        `수많은 데이터 중 고객님만을 위한 <strong>${config.topic}</strong> 플랜을 구성하고 있습니다.`,
+        `원활한 <strong>${config.topic}</strong> 서비스 이용을 위해 필수적인 안내 페이지입니다.`,
+        `최고의 만족을 드릴 수 있는 <strong>${config.topic}</strong> 컨설팅으로 바로 연결해 드립니다.`,
+        `불필요한 과정 없이 <strong>${config.topic}</strong> 핵심 솔루션만 빠르게 확인해 보세요.`,
+        `고객님의 성공적인 <strong>${config.topic}</strong> 진행을 돕기 위한 전용 브릿지 페이지입니다.`,
+        `아래 버튼을 눌러 나에게 가장 유리한 <strong>${config.topic}</strong> 조건을 즉시 확인해 보세요.`
+    ];
+
+    const buttons = [
+        "무료로 결과 확인하기", "나에게 맞는 솔루션 신청", "맞춤 견적 무료 조회", "나만의 맞춤 솔루션 확인", 
+        "무료 컨설팅 받아보기", "실시간 결과 조회하기", "최적의 조건 무료로 비교하기", "1:1 맞춤 상담 바로가기", 
+        "숨은 혜택 확인하고 신청하기", "나의 예상 결과 1초 만에 확인", "전문가 무료 매칭 시작하기", 
+        "가장 유리한 조건 확인하기", "비공개 특별 혜택 보러가기", "나의 맞춤형 플랜 확인하기", 
+        "지금 바로 혜택 조회하기", "안전하게 무료 상담 신청하기"
+    ];
+
+    const disclaimers = [
+        "본 정보는 제휴 파트너사의 지원을 받아 작성되었으며, 서비스 이용 시 소정의 수수료를 지급받을 수 있습니다.",
+        "해당 콘텐츠는 파트너십을 통해 제공되며, 일정액의 대가를 받을 수 있는 제휴 링크가 포함되어 있습니다.",
+        "본 페이지의 서비스는 광고주의 협력으로 운영되며, 이용 실적에 따라 제휴 수수료가 발생할 수 있습니다.",
+        "이 페이지는 제휴 마케팅의 일환으로 구성되었으며, 파트너사로부터 일정 수수료를 제공받을 수 있음을 안내드립니다.",
+        "본 안내는 정보 제공을 목적으로 하며, 연결된 사이트에서의 활동으로 인해 당사에 소정의 리워드가 지급될 수 있습니다.",
+        "독자에게 유용한 정보를 제공하기 위해 작성된 페이지이며, 제휴사로부터 마케팅 지원을 받고 있습니다.",
+        "해당 브릿지 페이지는 공식 파트너 활동의 일환으로, 연결된 서비스를 통해 수익이 발생할 수 있습니다.",
+        "고객님의 편의를 위해 제공되는 맞춤 정보이며, 서비스 제휴에 따른 경제적 대가를 받을 수 있습니다.",
+        "본 추천 서비스는 제휴 광고가 포함되어 있어, 상담 완료 시 수수료가 제공될 수 있음을 명시합니다.",
+        "신뢰할 수 있는 파트너사의 정보를 선별하여 제공하며, 이에 따른 소정의 커미션을 지급받을 수 있습니다."
+    ];
+
+    const semanticTags = ["div", "section", "article", "main"];
+
+    const selectedTitle = pickRandom(titles);
+    const selectedDesc = pickRandom(descriptions);
+    const selectedBtn = pickRandom(buttons);
+    const selectedDisclaimer = pickRandom(disclaimers);
+    const wrapperTag = pickRandom(semanticTags);
+    const innerTag = pickRandom(["div", "section"]);
+
+    // 5. 모바일 대응 동적 스타일 인젝션
+    const style = document.createElement('style');
+    style.textContent = `
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard-dynamic-subset.css');
+        
+        .${prefix}container, .${prefix}container * { box-sizing: border-box; }
+        .${prefix}container { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            margin: ${dynMargin}px auto; 
+            padding: ${dynPadding}px 30px; 
+            text-align: center; 
+            background: #fff; 
+            border-radius: ${dynRadius}px; 
+            box-shadow: 0 ${Math.floor(seededRandom()*5)+5}px ${Math.floor(seededRandom()*20)+20}px rgba(0,0,0,0.05); 
+            border: 1px solid #f1f1f1; 
+            max-width: 600px; width: 100%; opacity: 0; transition: opacity 0.4s ease; 
+        }
+        .${prefix}h1 { font-size: ${Math.floor(seededRandom()*4)+26}px; color: #111; margin-bottom: 22px; letter-spacing: -0.5px; word-break: keep-all; line-height: 1.3; }
+        .${prefix}p { font-size: 17px; color: #444; line-height: 1.6; margin-bottom: 35px; word-break: keep-all; }
+        .${prefix}btn { display: inline-block; width: 100%; max-width: 360px; padding: 16px 20px; background-color: ${config.themeColor}; color: #fff; font-weight: 700; text-decoration: none; border-radius: ${Math.floor(seededRandom()*8)+6}px; font-size: 19px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); transition: transform 0.2s, background-color 0.2s; cursor: pointer; border: none; text-align: center; }
+        .${prefix}btn:hover { transform: translateY(-2px); filter: brightness(95%); }
+        .${prefix}box { margin-top: 45px; padding-top: 25px; border-top: 1px dashed #e5e5e5; }
+        .${prefix}stat-text { font-size: 20px; font-weight: 700; color: #333; }
+        .${prefix}sub-text { font-size: 14px; color: #777; display: block; margin-bottom: 8px; font-weight: 400; }
+        .${prefix}num { font-size: 32px; font-weight: 900; color: ${config.themeColor}; }
+        .${prefix}foot { font-size: 12px; color: #999; line-height: 1.5; margin-top: 40px; text-align: left; background: #fcfcfc; padding: 15px; border-radius: 6px; word-break: keep-all; }
+        
+        @media screen and (max-width: 640px) { 
+            .${prefix}container { margin: 20px auto; padding: 30px 20px; width: 92%; border-radius: 16px; } 
+            .${prefix}h1 { font-size: 22px; margin-bottom: 15px; }
+            .${prefix}p { font-size: 15px; margin-bottom: 25px; }
+            .${prefix}btn { font-size: 16px; padding: 14px 10px; }
+            .${prefix}num { font-size: 28px; }
+            .${prefix}box { margin-top: 30px; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 6. 동적 DOM 생성 
+    const container = document.getElementById('dynamic-bridge-app');
+    if(container) {
+        container.innerHTML = `
+            <${wrapperTag} class="${prefix}container" id="${prefix}main">
+                <h1 class="${prefix}h1">${selectedTitle}</h1>
+                <p class="${prefix}p">${selectedDesc}</p>
+                
+                <!-- [개선 완료] 정석적인 아웃바운드 링크 구조 적용 (rel="nofollow sponsored") -->
+                <a href="${config.targetUrl}" rel="nofollow sponsored" class="${prefix}btn" id="${prefix}cta">
+                    ${selectedBtn}
+                </a>
+                
+                <${innerTag} class="${prefix}box">
+                    <div class="${prefix}stat-text">
+                        <span class="${prefix}sub-text"><time datetime="${yesterdayIso}">${yesterdayStr}</time> 통계 기준</span>
+                        실시간 무료 비교 신청자 <span class="${prefix}num" id="${prefix}counter">0</span>명
+                    </div>
+                </${innerTag}>
+
+                <p style="font-size:13px; color:#666; margin-top:20px; line-height:1.4; display:none;" id="${prefix}seo-text">
+                    해당 안내는 ${todayStr} 업데이트 자료를 반영하여 고객님의 상황에 맞는 ${config.topic} 정보를 원활히 제공하기 위함입니다.
+                </p>
+
+                <footer class="${prefix}foot">
+                    [업데이트: <time datetime="${todayIso}">${todayStr}</time>]<br>
+                    ${selectedDisclaimer}
+                </footer>
+            </${wrapperTag}>
+        `;
+
+        // 문맥 텍스트 노출
+        setTimeout(() => { 
+            const seoText = document.getElementById(`${prefix}seo-text`);
+            if(seoText) seoText.style.display = 'block'; 
+        }, 100);
+
+        // 7. 검색엔진 이해용 구조적 데이터(JSON-LD Schema) 동적 삽입
+        const schemaData = {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": `${config.topic} 안내`,
+            "dateModified": today.toISOString(),
+            "description": selectedDesc.replace(/<[^>]*>?/gm, '') 
+        };
+        const scriptEl = document.createElement('script');
+        scriptEl.type = 'application/ld+json';
+        scriptEl.text = JSON.stringify(schemaData);
+        document.head.appendChild(scriptEl);
+
+        // 8. 통계 카운터 애니메이션 엔진
+        function animateCount() {
+            const targetElement = document.getElementById(`${prefix}counter`);
+            if(!targetElement) return;
+            const dateSeed = yesterday.getFullYear() * 10000 + (yesterday.getMonth()+1) * 100 + yesterday.getDate() + seedValue;
+            
+            let pseudoRandom = Math.sin(dateSeed) * 10000;
+            pseudoRandom = pseudoRandom - Math.floor(pseudoRandom);
+            
+            const targetNumber = Math.floor(pseudoRandom * (config.maxCount - config.minCount + 1)) + config.minCount;
+            const startTime = performance.now();
+            const duration = 1800;
+
+            function updateNumber(currentTime) {
+                const progress = Math.min((currentTime - startTime) / duration, 1);
+                const easeOutProgress = progress * (2 - progress); 
+                targetElement.innerText = Math.floor(easeOutProgress * targetNumber).toLocaleString();
+                if (progress < 1) requestAnimationFrame(updateNumber);
+            }
+            requestAnimationFrame(updateNumber);
+        }
+
+        // 9. 페이드인 및 애니메이션 시동
+        setTimeout(() => {
+            const mainEl = document.getElementById(`${prefix}main`);
+            if(mainEl) mainEl.style.opacity = '1';
+            animateCount();
+        }, 150);
+    }
+})();
+</script>
+
+
+
+
+
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+
+
+
+
+
 
     <!-- JSON-LD Structured Data for Naver AI Snippet, Google SearchGPT, and LLM Engines -->
     <script type="application/ld+json">
@@ -1279,132 +1530,24 @@
 
 
 
-
-<!-- =================================================================
-     [SEO 자동화 무수정 올인원 푸터]
-     - 코드 수정 없이 수백 개 웹페이지에 즉시 복사/붙여넣기 가능
-     - URL 경로 자동 분석 -> Schema.org 브레드크럼(Breadcrumb) 리치 스니펫 주입
-     - 도메인/타이틀/연도/이메일 100% 자동 동기화
-================================================================== -->
-<footer id="auto-seo-footer" role="contentinfo" itemscope itemtype="https://schema.org/WPFooter">
-  <div class="asf-container">
-    
-    <!-- 상단: 자동 인식 브랜드 정보 및 내부 링크 최적화 -->
-    <div class="asf-top">
-      <div class="asf-brand-box">
-        <a href="/" class="asf-brand-name" id="asf-title-link" title="홈으로 이동">Website</a>
-        <p class="asf-brand-desc" id="asf-desc-text">
-          본 페이지는 웹 표준을 준수하며 신뢰성 높은 정보를 제공합니다.
-        </p>
-      </div>
-
-      <!-- 내부 링크 및 크롤러 예산 분배 제어 -->
-      <nav class="asf-nav" aria-label="바닥글 탐색">
-        <ul class="asf-links">
-          <li><a href="/" title="홈페이지">홈</a></li>
-          <li><a href="javascript:void(0)" onclick="asfOpenModal('privacy')" rel="nofollow">개인정보처리방침</a></li>
-          <li><a href="javascript:void(0)" onclick="asfOpenModal('terms')" rel="nofollow">이용약관</a></li>
-          <li><a href="#" id="asf-mail-link">문의하기</a></li>
-        </ul>
-      </nav>
-    </div>
-
-    <div class="asf-divider"></div>
-
-    <!-- 하단: 메타 정보 및 카피라이트 -->
-    <div class="asf-bottom">
-      <div class="asf-meta-info">
-        <span>사이트: <strong id="asf-domain-text">domain.com</strong></span>
-        <span class="asf-sep">|</span>
-        <span>운영 문의: <span id="asf-email-text">admin@domain.com</span></span>
-      </div>
-      <p class="asf-copyright">
-        &copy; <span id="asf-year">2026</span> <span class="asf-copy-name">Website</span>. All rights reserved.
-      </p>
-    </div>
-
+<footer id="dynamic-footer" style="font-size: 12px; color: #777; padding: 40px 20px; text-align: center; line-height: 1.8; font-family: -appsle-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #fafafa; border-top: 1px solid #eee;">
+  
+  <div style="margin-bottom: 12px; font-weight: 500; color: #444;">
+    © <span id="copyright-year"></span> <span id="site-title-display"></span>. All rights reserved.
   </div>
 
-  <!-- 데드링크 방지용 내장 약관 모달 -->
-  <div id="asf-modal" class="asf-modal" style="display:none;" role="dialog" aria-modal="true">
-    <div class="asf-modal-content">
-      <div class="asf-modal-header">
-        <h4 id="asf-modal-title">약관 안내</h4>
-        <button type="button" onclick="asfCloseModal()" class="asf-close-btn" aria-label="닫기">&times;</button>
-      </div>
-      <div class="asf-modal-body" id="asf-modal-body"></div>
-    </div>
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #999;">
+    <span style="display: inline-block; width: 8px; height: 8px; background-color: #2ecc71; border-radius: 50%; box-shadow: 0 0 5px #2ecc71; animation: pulse 2s infinite;"></span>
+    <span id="sync-status" aria-live="polite">시스템 안정화 운영 중</span>
   </div>
 
-  <!-- 자체 완결형 경량 스타일 (CSS 간섭 방지 scoped) -->
   <style>
-    #auto-seo-footer {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1.6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", sans-serif;
-      background-color: #f8fafc;
-      border-top: 1px solid #e2e8f0;
-      padding: 36px 20px 24px;
-      box-sizing: border-box;
-      width: 100%;
-    }
-    #auto-seo-footer .asf-container { max-width: 1000px; margin: 0 auto; }
-    #auto-seo-footer .asf-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
-    #auto-seo-footer .asf-brand-box { max-width: 580px; }
-    #auto-seo-footer .asf-brand-name {
-      font-size: 15px;
-      font-weight: 700;
-      color: #0f172a;
-      text-decoration: none;
-      display: inline-block;
-      margin-bottom: 6px;
-    }
-    #auto-seo-footer .asf-brand-name:hover { text-decoration: underline; }
-    #auto-seo-footer .asf-brand-desc { margin: 0; font-size: 12px; color: #64748b; word-break: keep-all; }
-    #auto-seo-footer .asf-nav { flex-shrink: 0; }
-    #auto-seo-footer .asf-links { list-style: none; padding: 0; margin: 0; display: flex; gap: 14px; }
-    #auto-seo-footer .asf-links a {
-      color: #475569;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    #auto-seo-footer .asf-links a:hover { color: #0284c7; text-decoration: underline; }
-    #auto-seo-footer .asf-divider { border-top: 1px solid #e2e8f0; margin: 20px 0; }
-    #auto-seo-footer .asf-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      font-size: 11.5px;
-      color: #94a3b8;
-    }
-    #auto-seo-footer .asf-sep { margin: 0 8px; color: #cbd5e1; }
-    #auto-seo-footer .asf-copyright { margin: 0; }
-    
-    /* 약관 모달창 */
-    #auto-seo-footer .asf-modal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 999999;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #auto-seo-footer .asf-modal-content {
-      background: #fff; border-radius: 8px; max-width: 500px; width: 90%;
-      padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    #auto-seo-footer .asf-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    #auto-seo-footer .asf-modal-header h4 { margin: 0; font-size: 16px; color: #1e293b; }
-    #auto-seo-footer .asf-close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; }
-    #auto-seo-footer .asf-modal-body { max-height: 300px; overflow-y: auto; font-size: 12.5px; color: #475569; line-height: 1.6; }
-
-    @media (max-width: 768px) {
-      #auto-seo-footer .asf-top { flex-direction: column; gap: 16px; }
-      #auto-seo-footer .asf-bottom { flex-direction: column; align-items: flex-start; }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
     }
   </style>
-
 
 
     <!-- 1. 전체 내부 링크 네비게이션 (sitemap.html 포함) -->
@@ -1437,127 +1580,34 @@
     </p>
 </footer>
 
-<!-- 3. 실시간 SEO 연동 및 브레드크럼 리치스니펫 자동 주입 스크립트 -->
 <script>
 (function() {
   'use strict';
 
-  function initSeoEngine() {
-    var host = window.location.hostname;
-    var cleanHost = host.replace(/^www\./, '');
-    var origin = window.location.origin;
-    var pathname = window.location.pathname;
-    
-    // 1) 사이트 타이틀 자동 판별
-    var rawTitle = document.title ? document.title.split(/[-|_|:]/)[0].trim() : cleanHost;
-    if (!rawTitle) rawTitle = cleanHost;
+  // 1. 현재 연도 구하기 (KST 기준 안전하게 추출)
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric'
+  });
+  const year = formatter.format(now).replace('년', '').trim();
+  const title = document.title || window.location.hostname;
 
-    // 2) DOM 텍스트 자동 동기화
-    var titleLink = document.getElementById('asf-title-link');
-    if (titleLink) titleLink.textContent = rawTitle;
+  // 2. UI 업데이트 (정적이고 안전한 정보만 반영)
+  document.getElementById('copyright-year').textContent = year;
+  document.getElementById('site-title-display').textContent = title;
 
-    var domainText = document.getElementById('asf-domain-text');
-    if (domainText) domainText.textContent = cleanHost;
-
-    var autoEmail = 'admin@' + cleanHost;
-    var emailText = document.getElementById('asf-email-text');
-    if (emailText) emailText.textContent = autoEmail;
-
-    var mailLink = document.getElementById('asf-mail-link');
-    if (mailLink) mailLink.href = 'mailto:' + autoEmail;
-
-    var yearElem = document.getElementById('asf-year');
-    if (yearElem) yearElem.textContent = new Date().getFullYear();
-
-    var copyNames = document.querySelectorAll('#auto-seo-footer .asf-copy-name');
-    copyNames.forEach(function(el) { el.textContent = rawTitle; });
-
-    // 3) [상위노출 핵심] 구글 브레드크럼(BreadcrumbList) & WebSite Schema 자동 생성
-    var pathSegments = pathname.split('/').filter(function(seg) { return seg.length > 0; });
-    var itemListElement = [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": origin + "/"
-      }
-    ];
-
-    var accumulatedPath = origin;
-    pathSegments.forEach(function(segment, index) {
-      accumulatedPath += '/' + segment;
-      var decodedName = decodeURIComponent(segment).replace(/[-_+]/g, ' ');
-      // 마지막 글 제목인 경우 타이틀 활용
-      if (index === pathSegments.length - 1 && document.title) {
-        decodedName = rawTitle;
-      }
-      itemListElement.push({
-        "@type": "ListItem",
-        "position": index + 2,
-        "name": decodedName,
-        "item": accumulatedPath
-      });
-    });
-
-    var dynamicSchema = {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": origin + "/#website",
-          "url": origin,
-          "name": rawTitle
-        },
-        {
-          "@type": "BreadcrumbList",
-          "@id": window.location.href + "#breadcrumb",
-          "itemListElement": itemListElement
-        }
-      ]
-    };
-
-    // Schema script 태그 주입
-    var script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = JSON.stringify(dynamicSchema);
-    document.head.appendChild(script);
+  // 3. 메타 태그에는 실시간 시간이 아닌 '카피라이트' 정보만 안전하게 주입
+  let metaCopy = document.querySelector('meta[name="copyright"]');
+  if (!metaCopy) {
+    metaCopy = document.createElement('meta');
+    metaCopy.setAttribute('name', 'copyright');
+    document.head.appendChild(metaCopy);
   }
+  metaCopy.content = year + ' ' + title;
 
-  // 4) 내장 모달(약관) 제어 로직 (404 방지)
-  window.asfOpenModal = function(type) {
-    var modal = document.getElementById('asf-modal');
-    var title = document.getElementById('asf-modal-title');
-    var body = document.getElementById('asf-modal-body');
-    var cleanHost = window.location.hostname.replace(/^www\./, '');
-
-    if (type === 'privacy') {
-      title.textContent = '개인정보처리방침';
-      body.innerHTML = '<strong>' + cleanHost + '</strong>는 이용자의 개인정보를 중요시하며, 관련 법령을 준수합니다.<br><br>' +
-        '1. 수집 항목: 접속 로그, 브라우저 정보 등 서비스 이용 과정에서 자동 생성되는 정보<br>' +
-        '2. 이용 목적: 사이트 트래픽 분석 및 안정적인 서비스 유지관리<br>' +
-        '3. 보유 기간: 관련 법령에 따른 의무 보존 기간 동안 보관 후 파기됩니다.';
-    } else {
-      title.textContent = '서비스 이용약관';
-      body.innerHTML = '<strong>' + cleanHost + '</strong> 이용을 환영합니다.<br><br>' +
-        '1. 본 사이트의 모든 콘텐츠는 정보 제공 목적으로 작성되었습니다.<br>' +
-        '2. 무단 복제 및 상업적 도용을 금지하며, 링크 공유 및 인용은 출처를 명시해야 합니다.';
-    }
-    if (modal) modal.style.display = 'flex';
-  };
-
-  window.asfCloseModal = function() {
-    var modal = document.getElementById('asf-modal');
-    if (modal) modal.style.display = 'none';
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSeoEngine);
-  } else {
-    initSeoEngine();
-  }
 })();
 </script>
-
 
 
 
